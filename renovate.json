@@ -1,0 +1,22 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "schedule": ["before 6am"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^Dockerfile$/"],
+      "matchStrings": ["ARG TPROXY_COMMIT=(?<currentDigest>[a-f0-9]{40})"],
+      "depNameTemplate": "https://github.com/telegramdesktop/tproxy-server",
+      "currentValueTemplate": "master",
+      "datasourceTemplate": "git-refs"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchManagers": ["custom.regex", "dockerfile"],
+      "automerge": true,
+      "automergeType": "branch"
+    }
+  ]
+}
