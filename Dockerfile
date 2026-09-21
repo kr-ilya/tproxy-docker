@@ -1,11 +1,14 @@
 FROM golang:1.26.5-bookworm AS builder
 
 ARG TPROXY_REPO_URL=https://github.com/telegramdesktop/tproxy-server
-ARG TPROXY_COMMIT=master
+ARG TPROXY_COMMIT=acc252ece3a25c29e9b83f608499a5567a33ab2a
 
 WORKDIR /src
 
-RUN git clone --depth=1 --branch ${TPROXY_COMMIT} ${TPROXY_REPO_URL} . \
+RUN git init -q . \
+    && git remote add origin ${TPROXY_REPO_URL} \
+    && git fetch --depth=1 origin ${TPROXY_COMMIT} \
+    && git checkout -q FETCH_HEAD \
     && go test ./... \
     && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
        go build -trimpath -ldflags="-s -w" \
