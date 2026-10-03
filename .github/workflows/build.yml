@@ -30,12 +30,15 @@ jobs:
         id: tags
         run: |
           commit=$(sed -n 's/^ARG TPROXY_COMMIT=//p' Dockerfile)
-          if [ -z "$commit" ]; then
-            echo "TPROXY_COMMIT not found in Dockerfile" >&2
+          repo=$(sed -n 's/^ARG TPROXY_REPO_URL=//p' Dockerfile)
+          if [ -z "$commit" ] || [ -z "$repo" ]; then
+            echo "TPROXY_COMMIT or TPROXY_REPO_URL not found in Dockerfile" >&2
             exit 1
           fi
           echo "commit=$commit" >> "$GITHUB_OUTPUT"
-          echo "short=${commit:0:7}" >> "$GITHUB_OUTPUT"
+          echo "repo=$repo" >> "$GITHUB_OUTPUT"
+          echo "upstream=${commit:0:7}" >> "$GITHUB_OUTPUT"
+          echo "build=${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
           echo "date=$(date -u +'%Y.%m.%d')" >> "$GITHUB_OUTPUT"
 
       - name: Login to Docker Hub
@@ -53,8 +56,12 @@ jobs:
           build-args: TPROXY_COMMIT=${{ steps.tags.outputs.commit }}
           tags: |
             ${{ env.IMAGE_NAME }}:latest
-            ${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.short }}
+            ${{ env.IMAGE_NAME }}:src-${{ steps.tags.outputs.upstream }}
+            ${{ env.IMAGE_NAME }}:sha-${{ steps.tags.outputs.build }}
             ${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.date }}
           labels: |
-            org.opencontainers.image.revision=${{ steps.tags.outputs.commit }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.tags.outputs.upstream }}
+            io.tproxy.upstream.source=${{ steps.tags.outputs.repo }}
+            io.tproxy.upstream.revision=${{ steps.tags.outputs.commit }}
