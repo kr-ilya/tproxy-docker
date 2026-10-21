@@ -1,4 +1,4 @@
-FROM golang:1.27.2-bookworm AS builder
+FROM golang:1.27.3-bookworm AS builder
 
 ARG TPROXY_REPO_URL=https://github.com/telegramdesktop/tproxy-server
 ARG TPROXY_COMMIT=c8adb8b7c6b7fc46c12ae3acb68be9070c26a8e8
